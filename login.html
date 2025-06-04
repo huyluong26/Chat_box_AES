@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Đăng Nhập - Chat AES Bảo Mật</title>
+    <style>
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #121212;
+            color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+        
+        #login-container {
+            background: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+            padding: 2rem;
+            width: 400px;
+            max-width: 90vw;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        h2 {
+            margin-bottom: 1.25rem;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: #3a86ff;
+        }
+        
+        label {
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+            color: #aaa;
+        }
+        
+        input[type="text"] {
+            padding: 0.5rem 0.75rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            border: none;
+            background: #333;
+            color: #eee;
+            margin-bottom: 1.5rem;
+            outline-offset: 2px;
+            outline-color: #3a86ff;
+        }
+        
+        button {
+            background-color: #3a86ff;
+            border: none;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 0.6rem 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            user-select: none;
+        }
+        
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        
+        button:hover:not(:disabled) {
+            background-color: #2d6cdf;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="login-container" role="login">
+        <h2>Đăng Nhập vào Chat AES Bảo Mật</h2>
+        <label for="username-input">Tên Đăng Nhập:</label>
+        <input type="text" id="username-input" placeholder="Nhập tên của bạn" autocomplete="off" aria-required="true" />
+        <button id="login-btn" disabled>Vào Chat</button>
+    </div>
+    &nbsp; &nbsp;
+
+    <script>
+        const usernameInput = document.getElementById('username-input');
+        const loginBtn = document.getElementById('login-btn');
+
+
+        function updateLoginButton() {
+            loginBtn.disabled = !usernameInput.value.trim();
+        }
+        usernameInput.addEventListener('input', updateLoginButton);
+        updateLoginButton();
+
+
+        loginBtn.addEventListener('click', () => {
+            const username = usernameInput.value.trim();
+            if (!username) return;
+
+
+            // Lưu tên đăng nhập vào localStorage để trang chat đọc
+            localStorage.setItem('chatUsername', username);
+
+
+            // Chuyển hướng đến trang chat
+            window.location.href = 'chat_box.html';
+        });
+
+
+        // Tính năng truy cập: tự động focus vào input khi tải trang
+        window.onload = () => usernameInput.focus();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Chat AES Nâng Cấp</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #121212;
+            color: #eee;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #chat {
+            max-width: 600px;
+            margin: auto;
+            padding: 1rem;
+        }
+        
+        #messages {
+            border: 1px solid #333;
+            padding: 1rem;
+            height: 300px;
+            overflow-y: scroll;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+        }
+        
+        .message {
+            margin: 0.5rem 0;
+        }
+        
+        .own {
+            text-align: right;
+            color: #90ee90;
+        }
+        
+        input,
+        button {
+            padding: 0.5rem;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        #message-input {
+            width: 75%;
+        }
+        
+        #send-btn {
+            width: 23%;
+            background-color: #3a86ff;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chat">
+        <h2>Phòng Chat AES Bảo Mật</h2>
+        <div id="room-label"></div>
+        <div id="messages"></div>
+        <input type="password" id="aes-key" placeholder="Nhập khóa AES" /><br />
+        <input type="text" id="message-input" placeholder="Nhập tin nhắn..." />
+        <button id="send-btn">Gửi</button>
+    </div>
+
+    <script>
+        const username = localStorage.getItem("chatUsername");
+        const room = localStorage.getItem("chatRoom");
+
+        if (!username || !room) {
+            window.location.href = "login.html";
+        }
+
+        document.getElementById("room-label").textContent = "Phòng: " + room;
+
+        const socket = io("http://localhost:3000");
+        socket.emit("join", {
+            username,
+            room
+        });
+
+        const messagesEl = document.getElementById("messages");
+        const aesKeyInput = document.getElementById("aes-key");
+        const messageInput = document.getElementById("message-input");
+        const sendBtn = document.getElementById("send-btn");
+
+        function addMessage(sender, content, own = false) {
+            const msg = document.createElement("div");
+            msg.classList.add("message");
+            if (own) msg.classList.add("own");
+            msg.textContent = sender + ": " + content;
+            messagesEl.appendChild(msg);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function encryptAES(text, key) {
+            return CryptoJS.AES.encrypt(text, key).toString();
+        }
+
+        function decryptAES(ciphertext, key) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(ciphertext, key);
+                return bytes.toString(CryptoJS.enc.Utf8) || "[Sai khóa]";
+            } catch {
+                return "[Lỗi giải mã]";
+            }
+        }
+
+        sendBtn.addEventListener("click", () => {
+            const msg = messageInput.value.trim();
+            const key = aesKeyInput.value.trim();
+            if (!msg || !key) return;
+            const encrypted = encryptAES(msg, key);
+            socket.emit("chat_message", {
+                sender: username,
+                encryptedMessage: encrypted,
+                room: room
+            });
+            addMessage(username, msg, true);
+            messageInput.value = "";
+        });
+
+        socket.on("chat_message", (data) => {
+            const key = aesKeyInput.value.trim();
+            const decrypted = decryptAES(data.encryptedMessage, key);
+            const isOwn = data.sender === username;
+            if (!isOwn) addMessage(data.sender, decrypted, false);
+        });
+    </script>
+</body>
+
+</html>
